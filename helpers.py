@@ -2,6 +2,7 @@ import torch
 import os
 import open3d as o3d
 import numpy as np
+import pathlib
 from diff_gaussian_rasterization import GaussianRasterizationSettings as Camera
 
 
@@ -98,5 +99,6 @@ def save_params(output_params, seq, exp):
             to_save[k] = np.stack([params[k] for params in output_params])
         else:
             to_save[k] = output_params[0][k]
-    os.makedirs(f"./output/{exp}/{seq}", exist_ok=True)
-    np.savez(f"./output/{exp}/{seq}/params", **to_save)
+
+    os.makedirs(f"{pathlib.Path(__file__).resolve().parent.parent}/output/{exp}/{seq}", exist_ok=True)
+    np.savez(f"{str(pathlib.Path(__file__).resolve().parent.parent)}/output/{exp}/{seq}/params", **to_save)

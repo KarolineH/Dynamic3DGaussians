@@ -19,12 +19,12 @@ def get_dataset(t, md, seq):
         w, h, k, w2c = md['w'], md['h'], md['k'][t][c], md['w2c'][t][c]
         cam = setup_camera(w, h, k, w2c, near=1.0, far=100)
         fn = md['fn'][t][c]        
-        im_raw = Image.open(str(pathlib.Path(__file__).parent.resolve()) + f"/data/{seq}/ims/{fn}")
+        im_raw = Image.open(str(pathlib.Path(__file__).resolve().parent.parent) + f"/synthetic_data/{seq}/ims/{fn}")
         if im_raw.mode == 'RGBA':
             im_raw = im_raw.convert('RGB')
         im = np.array(copy.deepcopy(im_raw))
         im = torch.tensor(im).float().cuda().permute(2, 0, 1) / 255
-        seg = np.array(copy.deepcopy(Image.open(str(pathlib.Path(__file__).parent.resolve()) + f"/data/{seq}/seg/{fn.replace('.jpg', '.png')}"))).astype(np.float32)
+        seg = np.array(copy.deepcopy(Image.open(str(pathlib.Path(__file__).resolve().parent.parent) + f"/synthetic_data/{seq}/seg/{fn.replace('.jpg', '.png')}"))).astype(np.float32)
         seg = torch.tensor(seg).float().cuda()
         seg_col = torch.stack((seg, torch.zeros_like(seg), 1 - seg))
         dataset.append({'cam': cam, 'im': im, 'seg': seg_col, 'id': c})
@@ -39,7 +39,7 @@ def get_batch(todo_dataset, dataset):
 
 
 def initialize_params(seq, md):
-    init_pt_cld = np.load(str(pathlib.Path(__file__).parent.resolve()) + f"/data/{seq}/init_pt_cld.npz")["data"]
+    init_pt_cld = np.load(str(pathlib.Path(__file__).resolve().parent.parent) + f"/synthetic_data/{seq}/init_pt_cld.npz")["data"]
     seg = init_pt_cld[:, 6]
     max_cams = 50
     sq_dist, _ = o3d_knn(init_pt_cld[:, :3], 3)
@@ -187,12 +187,11 @@ def report_progress(params, data, i, progress_bar, every_i=100):
         progress_bar.set_postfix({"train img 0 PSNR": f"{psnr:.{7}f}"})
         progress_bar.update(every_i)
 
-
 def train(seq, exp):
-    if os.path.exists(f"./output/{exp}/{seq}"):
+    if os.path.exists(f"{str(pathlib.Path(__file__).resolve().parent.parent)}/output/{exp}/{seq}"):
         print(f"Experiment '{exp}' for sequence '{seq}' already exists. Exiting.")
         return
-    md = json.load(open(str(pathlib.Path(__file__).parent.resolve()) + f"/data/{seq}/train_meta.json"))  # metadata
+    md = json.load(open(str(pathlib.Path(__file__).resolve().parent.parent) + f"/synthetic_data/{seq}/train_meta.json"))  # metadata
     num_timesteps = len(md['fn'])
     params, variables = initialize_params(seq, md)
     optimizer = initialize_optimizer(params, variables)
@@ -223,9 +222,9 @@ def train(seq, exp):
 
 
 if __name__ == "__main__":
-    exp_name = "exp01"
-
-    for sequence in ["rotation"]:
+    exp_name = "dynamic_gaussians_exp03"
+    for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
+    #for sequence in ["boxes_d3dg"]:
         train(sequence, exp_name)
         torch.cuda.empty_cache()
     # for sequence in ["basketball", "boxes", "football", "juggle", "softball", "tennis"]:
