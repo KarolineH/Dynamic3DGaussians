@@ -14,7 +14,7 @@ RENDER_MODE = 'color'  # 'color', 'depth' or 'centers'
 # RENDER_MODE = 'depth'  # 'color', 'depth' or 'centers'
 # RENDER_MODE = 'centers'  # 'color', 'depth' or 'centers'
 
-ADDITIONAL_LINES = None  # None, 'trajectories' or 'rotations'
+ADDITIONAL_LINES = 'trajectories' # None, 'trajectories' or 'rotations'
 # ADDITIONAL_LINES = 'trajectories'  # None, 'trajectories' or 'rotations'
 # ADDITIONAL_LINES = 'rotations'  # None, 'trajectories' or 'rotations'
 
@@ -46,7 +46,7 @@ def init_camera(y_angle=0., center_dist=2.4, cam_height=1.3, f_ratio=0.82):
 
 
 def load_scene_data(seq, exp, seg_as_col=False):
-    params = dict(np.load(f"{pathlib.Path(__file__).parent.parent}/output/{exp}/{seq}/params.npz"))
+    params = dict(np.load(f"{pathlib.Path(__file__).parent}/output/{exp}/{seq}/params.npz"))
     params = {k: torch.tensor(v).cuda().float() for k, v in params.items()}
     is_fg = params['seg_colors'][:, 0] > 0.5
     scene_data = []
@@ -235,5 +235,6 @@ def visualize(seq, exp):
 
 if __name__ == "__main__":
     exp_name = "dynamic_gaussians_exp03"
-    for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
+    for sequence in ["ani_growth"]:
         visualize(sequence, exp_name)
+# "ani_growth", "bending", "branching", "colour", "hole", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"

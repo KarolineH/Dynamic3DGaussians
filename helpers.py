@@ -100,5 +100,5 @@ def save_params(output_params, seq, exp):
         else:
             to_save[k] = output_params[0][k]
 
-    os.makedirs(f"{pathlib.Path(__file__).resolve().parent.parent}/output/{exp}/{seq}", exist_ok=True)
-    np.savez(f"{str(pathlib.Path(__file__).resolve().parent.parent)}/output/{exp}/{seq}/params", **to_save)
+    os.makedirs(f"{pathlib.Path(__file__).resolve().parent}/output/{exp}/{seq}", exist_ok=True)
+    np.savez(f"{str(pathlib.Path(__file__).resolve().parent)}/output/{exp}/{seq}/params", **to_save)
