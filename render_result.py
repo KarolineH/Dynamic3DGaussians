@@ -27,12 +27,12 @@ class OutputRenderer():
         self.far = far
         self.frame_rate = 24
 
-    def render_tests_to_file(self, exp, seq, cam_id=None):
+    def render_tests_to_file(self, exp, seq, cam_id=None, copy_gt=False):
 
         '''Renders colour images and depth images for the test cameras to png files.'''
 
         # first fetch the camera parameters and the trained model
-        ids, extrinsics, intrinsics = self.get_test_cameras(seq) # Camera parameters for all of the test cameras
+        ids, extrinsics, intrinsics = self.get_test_cameras('rotation') # Camera parameters for all of the test cameras
         scene_data, is_fg = self.load_scene_data(seq, exp)
 
         # Create the output directories
@@ -62,13 +62,14 @@ class OutputRenderer():
                 image = (im.cpu().permute(1,2,0).contiguous().numpy() * 255).astype(np.uint8)
                 imageio.imwrite(os.path.join(render_dir, f"{j:05d}.png"), image)
 
-                # find and copy the correct ground truth image 
-                gt_im = os.path.join(self.dataset_location, seq, 'ims', str(view), f"{t+1:06d}.png")
-                if os.path.exists(gt_im):
-                    gt_with_bg = self.gt_insert_bg(gt_im, bg=0)
-                    gt_with_bg.save(os.path.join(gt_dir, f"{j:05d}.png"))
-                else:
-                    print(f"Ground truth image {gt_im} does not exist, skipping.")
+                if copy_gt:
+                    # find and copy the correct ground truth image 
+                    gt_im = os.path.join(self.dataset_location, seq, 'ims', str(view), f"{t+1:06d}.png")
+                    if os.path.exists(gt_im):
+                        gt_with_bg = self.gt_insert_bg(gt_im, bg=0)
+                        gt_with_bg.save(os.path.join(gt_dir, f"{j:05d}.png"))
+                    else:
+                        print(f"Ground truth image {gt_im} does not exist, skipping.")
                             
                 inv_depth_array = depth.cpu().permute(1,2,0).contiguous().numpy() # depth images come out inverted, with far values being smaller than near values
                 depth_array = np.max(inv_depth_array) - inv_depth_array # now the depth values are in the range [0, max_depth]
