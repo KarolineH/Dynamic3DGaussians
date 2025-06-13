@@ -14,17 +14,17 @@ import os
 from PIL import Image
 import torch
 import torchvision.transforms.functional as tf
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# import sys
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-from utils.loss_utils import ssim
+from metrics_utils import ssim
 from lpipsPyTorch import lpips
 import json
 from tqdm import tqdm
-from utils.image_utils import psnr
-from argparse import ArgumentParser
+from metrics_utils import psnr
 from pytorch_msssim import ms_ssim
+
 def readImages(renders_dir, gt_dir):
     renders = []
     gts = []
