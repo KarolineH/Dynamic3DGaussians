@@ -4,12 +4,11 @@ import torchvision
 import numpy as np
 import pathlib
 import json
-import imageio
 import cv2
-from PIL import Image
 from helpers import setup_camera
 from diff_gaussian_rasterization import GaussianRasterizer as Renderer
 import os
+import shutil
 
 class OutputRenderer():
 
@@ -64,20 +63,15 @@ class OutputRenderer():
                 # to8b(im).transpose(1,2,0)
                 torchvision.utils.save_image(im, os.path.join(render_dir, f"{j:05d}.png"))
 
+                max_valid_depth = torch.unique(depth)[-2] # This should be the maximum reading that is not 15.0, which is the predefined far max value
+                min_depth = torch.min(depth)
+                norm = torch.clip(depth, min_depth, max_valid_depth)
+                norm = (norm - min_depth) / (max_valid_depth - min_depth)
+                torchvision.utils.save_image(norm, os.path.join(depth_dir, f"{j:05d}.png"))
+
                 if copy_gt:
-                    # find and copy the correct ground truth image 
-                    gt_im = os.path.join(self.dataset_location, seq, 'ims', str(view), f"{t+1:06d}.png")
-                    if os.path.exists(gt_im):
-                        gt_with_bg = self.gt_insert_bg(gt_im, bg=0)
-                        gt_with_bg.save(os.path.join(gt_dir, f"{j:05d}.png"))
-                    else:
-                        print(f"Ground truth image {gt_im} does not exist, skipping.")
-                # torchvision.utils.save_image(depth, os.path.join(depth_dir, f"{j:05d}.png"))
-                inv_depth_array = depth.cpu().permute(1,2,0).contiguous().numpy() # depth images come out inverted, with far values being smaller than near values
-                depth_array = np.max(inv_depth_array) - inv_depth_array # now the depth values are in the range [0, max_depth]
-                norm_depth_array = depth_array / np.max(depth_array) * 255.0 # normalise to [0, 255] range
-                depth_im = norm_depth_array.astype(np.uint8).squeeze()
-                imageio.imwrite(os.path.join(depth_dir, f"{j:05d}.png"), depth_im)
+                    shutil.copyfile(os.path.join(self.dataset_location, seq, 'ims', str(view), f"{t+1:06d}.png"), os.path.join(gt_dir, f"{j:05d}.png"))
+
                 j += 1
         
     def render(self, w2c, k, timestep_data):
@@ -115,24 +109,6 @@ class OutputRenderer():
         # if REMOVE_BACKGROUND:
         #     is_fg = is_fg[is_fg]
         return scene_data, is_fg
-    
-    def gt_insert_bg(self, im_file, bg=0):
-        '''
-        Insert a white or black background into an original ground truth image
-        that had a transparent background (alpha channel).
-        bg = 0 is black and 1 is white
-        '''
-
-        img = Image.open(im_file).convert("RGBA")
-        if bg == 0:
-            bg_colour = Image.new("RGBA", img.size, (0, 0, 0, 255))
-        elif bg == 1:
-            bg_colour = Image.new("RGBA", img.size, (255, 255, 255, 255))
-            
-        # Composite the original image over the black background
-        composited = Image.alpha_composite(bg_colour, img)
-        final = composited.convert("RGB")
-        return final
     
 
     def renders_to_mp4(self, exp, seq, out_dir_name='colour_videos'):
@@ -172,7 +148,7 @@ class OutputRenderer():
 if __name__ == "__main__":
 
     OR = OutputRenderer()
-    exp_name = "dynamic_gaussians_exp03"
+    exp_name = "d3_exp04"
     for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
         OR.render_tests_to_file(exp_name, sequence, copy_gt=True)
         OR.renders_to_mp4(exp_name, sequence)
