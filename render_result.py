@@ -32,7 +32,7 @@ class OutputRenderer():
         '''Renders colour images and depth images for the test cameras to png files.'''
 
         # first fetch the camera parameters and the trained model
-        ids, extrinsics, intrinsics = self.get_test_cameras('rotation') # Camera parameters for all of the test cameras
+        ids, extrinsics, intrinsics = self.get_test_cameras(seq) # Camera parameters for all of the test cameras
         scene_data, is_fg = self.load_scene_data(seq, exp)
 
         # Create the output directories
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     OR = OutputRenderer()
     exp_name = "d3_exp04"
-    for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
+    for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "large_growth", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
         OR.render_tests_to_file(exp_name, sequence, copy_gt=True)
         OR.renders_to_mp4(exp_name, sequence)
         print(f"Rendered and saved outputs for {sequence} in {exp_name}.")
