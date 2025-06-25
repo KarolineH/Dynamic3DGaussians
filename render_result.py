@@ -141,8 +141,19 @@ class OutputRenderer():
             writers[j % 4].write(frame)
 
         # Release writers
-        for writer in writers:
+        import subprocess
+        for i,writer in enumerate(writers):
             writer.release()
+            outfile = os.path.join(out_path,output_template.format(i))
+            # Fix the encoding of the video using ffmpeg
+            cmd = ['ffmpeg','-i', outfile,'-vcodec', 'libx264','-acodec', 'aac','-movflags', '+faststart',outfile,'-y']
+            try:
+                subprocess.run(cmd, check=True)
+                print(f"✔ Converted: {outfile}")
+            except subprocess.CalledProcessError as e:
+                print(f"❌ ffmpeg failed on {outfile}:", e)
+            return
+
 
 
 if __name__ == "__main__":
