@@ -222,7 +222,7 @@ def train(seq, exp, input_dir):
 
 
 if __name__ == "__main__":
-    exp_name = "d3_exp04"
+    exp_name = "d3_exp06"
     input_data_location = '/workspace/synthetic_data/'
     for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "large_growth", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
     #for sequence in ["boxes_d3dg"]:

@@ -145,21 +145,33 @@ class OutputRenderer():
         for i,writer in enumerate(writers):
             writer.release()
             outfile = os.path.join(out_path,output_template.format(i))
-            # Fix the encoding of the video using ffmpeg
-            cmd = ['ffmpeg','-i', outfile,'-vcodec', 'libx264','-acodec', 'aac','-movflags', '+faststart',outfile,'-y']
-            try:
-                subprocess.run(cmd, check=True)
-                print(f"✔ Converted: {outfile}")
-            except subprocess.CalledProcessError as e:
-                print(f"❌ ffmpeg failed on {outfile}:", e)
-            return
+            fix_video_codec(outfile)  # Ensure video codec is correct
 
-
+def fix_video_codec(outpath):
+    import subprocess
+    temp_path = outpath + '.tmp.mp4'
+    cmd = [
+        'ffmpeg', '-i', outpath,
+        '-vcodec', 'libx264',
+        '-acodec', 'aac',
+        '-movflags', '+faststart',
+        temp_path,
+        '-y'
+    ]
+    try:
+        subprocess.run(cmd, check=True)
+        os.replace(temp_path, outpath)  # atomically overwrite original
+        print(f"✔ Converted: {outpath}")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ ffmpeg failed on {outpath}:", e)
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+    return
 
 if __name__ == "__main__":
 
     OR = OutputRenderer()
-    exp_name = "d3_exp04"
+    exp_name = "d3_exp06"
     for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "large_growth", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
         OR.render_tests_to_file(exp_name, sequence, copy_gt=True)
         OR.renders_to_mp4(exp_name, sequence)

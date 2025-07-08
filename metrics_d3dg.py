@@ -111,5 +111,5 @@ if __name__ == "__main__":
     device = torch.device("cuda:0")
     torch.cuda.set_device(device)
 
-    experiment_path = '/workspace/Dynamic3DGaussians/output/dynamic_gaussians_exp03'
+    experiment_path = '/workspace/Dynamic3DGaussians/output/d3_exp06'
     evaluate(experiment_path)
