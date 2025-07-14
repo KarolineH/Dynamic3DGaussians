@@ -2,7 +2,6 @@
 import torch
 import torchvision
 import numpy as np
-import pathlib
 import json
 import cv2
 from helpers import setup_camera
@@ -18,7 +17,7 @@ class OutputRenderer():
     It also combines the colour renders into mp4 videos.
     '''
 
-    dataset_location = '/workspace/synthetic_data/'
+    dataset_location = '/workspace/data/synthetic_data/'
 
     def __init__(self, w=800, h=800, near=0.01, far=100.0):
         self.w = w
@@ -36,10 +35,10 @@ class OutputRenderer():
         scene_data, is_fg = self.load_scene_data(seq, exp)
 
         # Create the output directories
-        render_dir = f"/workspace/Dynamic3DGaussians/output/{exp}/{seq}/renders/"
-        gt_dir = f"/workspace/Dynamic3DGaussians/output/{exp}/{seq}/gt/"
-        video_dir = f"/workspace/Dynamic3DGaussians/output/{exp}/{seq}/colour_videos/"
-        depth_dir = f"{pathlib.Path(__file__).parent}/output/{exp}/{seq}/depth_renders/"
+        render_dir = f"/workspace/data/d3dg/{exp}/{seq}/renders/"
+        gt_dir = f"/workspace/data/d3dg/{exp}/{seq}/gt/"
+        video_dir = f"/workspace/data/d3dg/{exp}/{seq}/colour_videos/"
+        depth_dir = f"/workspace/data/d3dg/{exp}/{seq}/depth_renders/"
         for path in [render_dir, gt_dir, video_dir, depth_dir]:
             if not os.path.exists(path):
                 os.makedirs(path)
@@ -90,7 +89,7 @@ class OutputRenderer():
         return camera_ids, w2cs, ks
         
     def load_scene_data(self, seq, exp, seg_as_col=False):
-        params = dict(np.load(f"/workspace/Dynamic3DGaussians/output/{exp}/{seq}/params.npz"))
+        params = dict(np.load(f"/workspace/data/d3dg/{exp}/{seq}/params.npz"))
         params = {k: torch.tensor(v).cuda().float() for k, v in params.items()}
         is_fg = params['seg_colors'][:, 0] > 0.5
         scene_data = []
@@ -116,7 +115,7 @@ class OutputRenderer():
         Fetches the rendered colour images (test set output) and stitches them together into mp4 videos.
         Assumes 4 test views per model and that images are interleaved.
         '''
-        sequence_path = f"/workspace/Dynamic3DGaussians/output/{exp}/{seq}/"
+        sequence_path = f"/workspace/data/d3dg/{exp}/{seq}/"
         out_path = os.path.join(sequence_path, out_dir_name)
         output_template = "view_{}.mp4"
         render_dir = os.path.join(sequence_path, "renders") 

@@ -187,8 +187,11 @@ def report_progress(params, data, i, progress_bar, every_i=100):
         progress_bar.set_postfix({"train img 0 PSNR": f"{psnr:.{7}f}"})
         progress_bar.update(every_i)
 
-def train(seq, exp, input_dir):
-    if os.path.exists(f"{str(pathlib.Path(__file__).resolve().parent)}/output/{exp}/{seq}"):
+def train(seq, exp, input_dir, output_dir=None):
+    if output_dir is None:
+        output_dir = f"/workspace/data/d3dg/{exp}/{seq}/"
+
+    if os.path.exists(output_dir):
         print(f"Experiment '{exp}' for sequence '{seq}' already exists. Exiting.")
         return
     md = json.load(open(os.path.join(input_dir, f'{seq}/train_meta.json')))  # metadata
@@ -223,11 +226,8 @@ def train(seq, exp, input_dir):
 
 if __name__ == "__main__":
     exp_name = "d3_exp06"
-    input_data_location = '/workspace/synthetic_data/'
-    for sequence in ["ani_growth", "bending", "branching", "colour", "hole", "large_growth", "rotation", "shedding", "stretching", "translation", "twisting", "uni_growth"]:
-    #for sequence in ["boxes_d3dg"]:
-        train(sequence, exp_name, input_data_location)
+    input_data_location = '/workspace/data/synthetic_data/'
+    output_data_location = f"/workspace/data/d3dg/{exp_name}/"
+    for sequence in os.listdir(input_data_location):
+        train(sequence, exp_name, input_data_location, os.path.join(output_data_location, sequence))
         torch.cuda.empty_cache()
-    # for sequence in ["basketball", "boxes", "football", "juggle", "softball", "tennis"]:
-    #     train(sequence, exp_name)
-    #     torch.cuda.empty_cache()
